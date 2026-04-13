@@ -23,7 +23,7 @@ void Curtain_Init(curtain_ctrl_t *ctx)
     ctx->state = CURTAIN_IDLE;
     ctx->fault = FAULT_NONE;
     ctx->move_ticks_10ms = 0;
-    ctx->timeout_ticks_10ms = 200; // 2 seconds for bring-up demo, adjust later.
+    ctx->timeout_ticks_10ms = CURTAIN_TIMEOUT_TICKS_10MS;
     ctx->pwm_open = 60;
     ctx->pwm_close = 60;
     Port_MotorSet(MOTOR_STOP, 0);
@@ -74,7 +74,8 @@ void Curtain_Tick10ms(curtain_ctrl_t *ctx)
         return;
     }
 
-    // Motion state handling.
+#if CURTAIN_USE_LIMIT_SWITCH
+    // Motion state handling when limit switches are connected.
     if (ctx->state == CURTAIN_OPENING) {
         if (in.right_limit_triggered) {
             enter_idle(ctx, "opening -> idle (right limit)");
@@ -94,11 +95,15 @@ void Curtain_Tick10ms(curtain_ctrl_t *ctx)
             return;
         }
     }
+#endif
 
     // Timeout protection.
     ctx->move_ticks_10ms++;
     if (ctx->move_ticks_10ms > ctx->timeout_ticks_10ms) {
+#if CURTAIN_TIMEOUT_AS_FAULT
         enter_fault(ctx, FAULT_TIMEOUT, "motion timeout -> fault(0x02)");
+#else
+        enter_idle(ctx, "motion timeout -> idle (safety stop)");
+#endif
     }
 }
-
