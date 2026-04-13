@@ -21,6 +21,10 @@
 3. 在你工程里实现 `curtain_port.h` 声明的底层函数
 4. 在 `while(1)` 中每 10ms 调一次 `Curtain_Tick10ms()`
 
+CubeMX 配置可直接参考：
+
+- `docs/CUBEMX_REQUIRED_CONFIG_CN.md`
+
 ## Day1 最小验证
 
 1. 上电打印 `boot ok`
@@ -28,4 +32,3 @@
 3. 触发右限位后自动停机
 4. 超时未到位进入故障态
 5. 长按“停键”触发复位（可在你的按键层实现）
-
