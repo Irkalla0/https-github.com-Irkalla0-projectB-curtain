@@ -18,10 +18,11 @@
 
 ## 快速开始
 
-1. 阅读 [项目总计划](./docs/PROJECT_B_TOTAL_PLAN_CN.md)
+1. 阅读 [Day1 启动指南](./docs/START_HERE_DAY1_CN.md)
 2. 按 [硬件/软件清单](./docs/HARDWARE_SOFTWARE_CHECKLIST_CN.md) 采购和安装
-3. 完成 STM32 执行器 MVP（第1-2周）
-4. 部署网关并完成语音链路（第6-8周）
+3. 按 [接线表](./docs/BRINGUP_WIRING_TABLE_CN.md) 完成 Bring-up
+4. 用 [Week1执行清单](./docs/WEEK1_EXECUTION_CHECKLIST_CN.md) 推进 MVP
+5. 部署网关并完成语音链路（第6-8周）
 
 ## 语音控制模块
 
@@ -31,4 +32,3 @@
 - 关闭窗帘
 - 停止窗帘
 - 窗帘到 50% / 75%（含中文数字）
-
