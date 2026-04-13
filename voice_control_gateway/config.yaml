@@ -1,0 +1,16 @@
+gateway:
+  base_url: "http://127.0.0.1:8000"
+  curtain_id: "living-room"
+  token: ""
+  verify_tls: false
+  request_timeout_sec: 5
+
+asr:
+  model_path: "./models/vosk-model-small-cn-0.22"
+  sample_rate: 16000
+  device: null
+  min_confidence: 0.65
+
+control:
+  command_cooldown_sec: 2.0
+  print_partial: false

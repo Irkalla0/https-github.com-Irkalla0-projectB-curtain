@@ -1,0 +1,23 @@
+gateway:
+  # Existing local gateway API base URL.
+  base_url: "http://127.0.0.1:8000"
+  # Curtain ID in your system.
+  curtain_id: "living-room"
+  # Optional: set JWT token here if API requires auth.
+  token: ""
+  verify_tls: false
+  request_timeout_sec: 5
+
+asr:
+  # Download an offline Chinese model from Vosk and put it here.
+  model_path: "./models/vosk-model-small-cn-0.22"
+  sample_rate: 16000
+  # Use --list-devices to find your input device ID. null means default.
+  device: null
+  # Ignore low confidence recognition result.
+  min_confidence: 0.65
+
+control:
+  # Prevent repeated commands from being sent too frequently.
+  command_cooldown_sec: 2.0
+  print_partial: false
