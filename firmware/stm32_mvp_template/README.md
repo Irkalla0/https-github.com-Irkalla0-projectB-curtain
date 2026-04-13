@@ -12,14 +12,16 @@
 
 - `curtain_ctrl.h/.c`：状态机与控制逻辑
 - `curtain_port.h`：硬件抽象接口（你在 Cube 工程里实现）
-- `example_main_loop.c`：主循环调用示例
+- `app_entry.h/.c`：可直接集成到 Cube 工程的入口与调度
+- `example_main_loop.c`：参考示例（可不使用）
 
 ## 接入步骤（CubeIDE）
 
 1. 在 CubeMX 配好 GPIO/TIM/UART（按 docs 接线表）
-2. 将这 4 个文件拷入工程（例如 `Core/Src` 和 `Core/Inc`）
-3. 在你工程里实现 `curtain_port.h` 声明的底层函数
-4. 在 `while(1)` 中每 10ms 调一次 `Curtain_Tick10ms()`
+2. 将 `curtain_ctrl.*`, `curtain_port.h`, `app_entry.*` 拷入工程（例如 `Core/Src` 和 `Core/Inc`）
+3. 在 `main.c` 中包含 `app_entry.h`
+4. 在初始化后调用 `App_Init()`
+5. 在 `while(1)` 中持续调用 `App_Run10msScheduler()`
 
 CubeMX 配置可直接参考：
 
