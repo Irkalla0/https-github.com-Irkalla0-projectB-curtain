@@ -1,5 +1,11 @@
 # Next Steps (After Generate)
 
+## Fastest Way (One Command)
+```powershell
+powershell -ExecutionPolicy Bypass -File D:\codex\projectB\firmware\one_click_cubeide_build.ps1
+```
+This command will auto-import project, headless build, and open CubeIDE workspace.
+
 1. Open this file in STM32CubeIDE:
 `D:\codex\projectB\firmware\cubeide_project\CurtainMVP_F103\CurtainMVP_F103.ioc`
 
@@ -24,4 +30,3 @@ Expected boot log: `boot ok`
 - Limit switches are optional for now.
 - Timeout performs safe stop (not latched fault).
 - After wiring real limit switches, set `CURTAIN_USE_LIMIT_SWITCH` to `1`.
-

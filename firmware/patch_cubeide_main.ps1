@@ -113,3 +113,120 @@ if (Test-Path $halConfPath) {
 }
 
 Write-Host "Patched main.c (+TIM1 +app hooks) and hal_conf at: $ProjectRoot"
+
+# 10) ensure CubeIDE source list contains app_entry.c and curtain_ctrl.c
+$mxPath = Join-Path $ProjectRoot ".mxproject"
+if (Test-Path $mxPath) {
+    $mx = Get-Content -Path $mxPath -Raw -Encoding UTF8
+
+    if ($mx -notmatch 'Core\\Src\\app_entry\.c') {
+        $mx = $mx -replace 'SourceFiles=Core\\Src\\main\.c;Core\\Src\\stm32f1xx_it\.c;Core\\Src\\stm32f1xx_hal_msp\.c;',
+            'SourceFiles=Core\\Src\\main.c;Core\\Src\\stm32f1xx_it.c;Core\\Src\\stm32f1xx_hal_msp.c;Core\\Src\\app_entry.c;Core\\Src\\curtain_ctrl.c;'
+    }
+
+    if ($mx -match 'SourceFileListSize=3') {
+        $mx = $mx -replace 'SourceFileListSize=3', 'SourceFileListSize=5'
+    }
+
+    if ($mx -notmatch 'SourceFiles#3=\.\.\\Core\\Src\\app_entry\.c') {
+        $mx = $mx -replace 'SourceFiles#2=\.\.\\Core\\Src\\main\.c',
+            "SourceFiles#2=..\Core\Src\main.c`r`nSourceFiles#3=..\Core\Src\app_entry.c`r`nSourceFiles#4=..\Core\Src\curtain_ctrl.c"
+    }
+
+    Set-Content -Path $mxPath -Value $mx -Encoding UTF8
+}
+
+Write-Host "Patched .mxproject source list at: $ProjectRoot"
+
+# 11) ensure HAL TIM driver files exist and are listed in .mxproject
+$dstTimInc = Join-Path $ProjectRoot "Drivers\\STM32F1xx_HAL_Driver\\Inc"
+$dstTimSrc = Join-Path $ProjectRoot "Drivers\\STM32F1xx_HAL_Driver\\Src"
+$fwRootCandidates = @(
+    "C:\\Users\\$env:USERNAME\\STM32Cube\\Repository\\STM32Cube_FW_F1_V1.8.6\\Drivers\\STM32F1xx_HAL_Driver",
+    "C:\\Users\\$env:USERNAME\\STM32Cube\\Repository\\STM32Cube_FW_F1_V1.8.5\\Drivers\\STM32F1xx_HAL_Driver"
+)
+
+$fwHalRoot = $null
+foreach ($c in $fwRootCandidates) {
+    if (Test-Path (Join-Path $c "Inc\\stm32f1xx_hal_tim.h")) {
+        $fwHalRoot = $c
+        break
+    }
+}
+
+if ($fwHalRoot) {
+    Copy-Item -LiteralPath (Join-Path $fwHalRoot "Inc\\stm32f1xx_hal_tim.h") -Destination (Join-Path $dstTimInc "stm32f1xx_hal_tim.h") -Force
+    Copy-Item -LiteralPath (Join-Path $fwHalRoot "Inc\\stm32f1xx_hal_tim_ex.h") -Destination (Join-Path $dstTimInc "stm32f1xx_hal_tim_ex.h") -Force
+    Copy-Item -LiteralPath (Join-Path $fwHalRoot "Src\\stm32f1xx_hal_tim.c") -Destination (Join-Path $dstTimSrc "stm32f1xx_hal_tim.c") -Force
+    Copy-Item -LiteralPath (Join-Path $fwHalRoot "Src\\stm32f1xx_hal_tim_ex.c") -Destination (Join-Path $dstTimSrc "stm32f1xx_hal_tim_ex.c") -Force
+}
+
+if (Test-Path $mxPath) {
+    $mx = Get-Content -Path $mxPath -Raw -Encoding UTF8
+
+    if ($mx -notmatch 'Drivers\\STM32F1xx_HAL_Driver\\Src\\stm32f1xx_hal_tim\.c') {
+        $mx = $mx -replace 'Drivers\\STM32F1xx_HAL_Driver\\Src\\stm32f1xx_hal_exti\.c;',
+            'Drivers\\STM32F1xx_HAL_Driver\\Src\\stm32f1xx_hal_exti.c;Drivers\\STM32F1xx_HAL_Driver\\Src\\stm32f1xx_hal_tim.c;Drivers\\STM32F1xx_HAL_Driver\\Src\\stm32f1xx_hal_tim_ex.c;'
+    }
+
+    if ($mx -notmatch 'Drivers\\STM32F1xx_HAL_Driver\\Inc\\stm32f1xx_hal_tim\.h') {
+        $mx = $mx -replace 'Drivers\\STM32F1xx_HAL_Driver\\Inc\\stm32f1xx_hal_exti\.h;',
+            'Drivers\\STM32F1xx_HAL_Driver\\Inc\\stm32f1xx_hal_exti.h;Drivers\\STM32F1xx_HAL_Driver\\Inc\\stm32f1xx_hal_tim.h;Drivers\\STM32F1xx_HAL_Driver\\Inc\\stm32f1xx_hal_tim_ex.h;'
+    }
+
+    Set-Content -Path $mxPath -Value $mx -Encoding UTF8
+}
+
+Write-Host "Ensured TIM HAL driver files and .mxproject entries at: $ProjectRoot"
+
+# 12) ensure STM32CubeIDE linked resources include custom source files
+$eclipseProjectPath = Join-Path $ProjectRoot "STM32CubeIDE\\.project"
+if (Test-Path $eclipseProjectPath) {
+    $proj = Get-Content -Path $eclipseProjectPath -Raw -Encoding UTF8
+
+    $linksToAdd = @()
+    if ($proj -notmatch '<name>Drivers/STM32F1xx_HAL_Driver/stm32f1xx_hal_tim\.c</name>') {
+        $linksToAdd += @"
+		<link>
+			<name>Drivers/STM32F1xx_HAL_Driver/stm32f1xx_hal_tim.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c</locationURI>
+		</link>
+"@
+    }
+    if ($proj -notmatch '<name>Drivers/STM32F1xx_HAL_Driver/stm32f1xx_hal_tim_ex\.c</name>') {
+        $linksToAdd += @"
+		<link>
+			<name>Drivers/STM32F1xx_HAL_Driver/stm32f1xx_hal_tim_ex.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c</locationURI>
+		</link>
+"@
+    }
+    if ($proj -notmatch '<name>Application/User/Core/app_entry\.c</name>') {
+        $linksToAdd += @"
+		<link>
+			<name>Application/User/Core/app_entry.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Core/Src/app_entry.c</locationURI>
+		</link>
+"@
+    }
+    if ($proj -notmatch '<name>Application/User/Core/curtain_ctrl\.c</name>') {
+        $linksToAdd += @"
+		<link>
+			<name>Application/User/Core/curtain_ctrl.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Core/Src/curtain_ctrl.c</locationURI>
+		</link>
+"@
+    }
+
+    if ($linksToAdd.Count -gt 0) {
+        $insert = ($linksToAdd -join "`r`n")
+        $proj = $proj -replace '</linkedResources>', "$insert`r`n	</linkedResources>"
+        Set-Content -Path $eclipseProjectPath -Value $proj -Encoding UTF8
+    }
+}
+
+Write-Host "Ensured STM32CubeIDE linked resources at: $ProjectRoot"

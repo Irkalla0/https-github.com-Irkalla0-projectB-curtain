@@ -15,6 +15,9 @@ Thumbs.db
 .vscode/
 .idea/
 .metadata/
+firmware/cubeide_project/CurtainMVP_F103/STM32CubeIDE/Debug/
+firmware/cubeide_project/CurtainMVP_F103/STM32CubeIDE/.settings/language.settings.xml
+firmware/cubeide_project/CurtainMVP_F103/STM32CubeIDE/.settings/stm32cubeide.project.prefs
 
 # Local models (can be downloaded on target machine)
 voice_control_gateway/models/

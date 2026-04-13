@@ -9,6 +9,7 @@ static void enter_idle(curtain_ctrl_t *ctx, const char *log_msg)
     Port_Log(log_msg);
 }
 
+#if CURTAIN_USE_LIMIT_SWITCH || CURTAIN_TIMEOUT_AS_FAULT
 static void enter_fault(curtain_ctrl_t *ctx, fault_code_t code, const char *log_msg)
 {
     ctx->state = CURTAIN_FAULT;
@@ -17,6 +18,7 @@ static void enter_fault(curtain_ctrl_t *ctx, fault_code_t code, const char *log_
     Port_MotorSet(MOTOR_STOP, 0);
     Port_Log(log_msg);
 }
+#endif
 
 void Curtain_Init(curtain_ctrl_t *ctx)
 {
