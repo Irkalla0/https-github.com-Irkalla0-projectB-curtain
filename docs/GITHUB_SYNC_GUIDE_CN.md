@@ -1,35 +1,25 @@
-# GitHub 同步说明（项目B）
+﻿# GitHub 同步说明（项目B）
 
-## 1. 初始化仓库
-
-```bash
-git init
-git add .
-git commit -m "bootstrap: add project B total plan and voice control gateway"
-```
-
-## 2. 连接远程仓库
+## 1. 常规推送
 
 ```bash
-git remote add origin <你的仓库URL>
-git branch -M main
-git push -u origin main
+git add <files>
+git commit -m "your message"
+git push origin main
 ```
 
-示例 URL：
+## 2. 如果 Windows 直连 443 失败
 
-- HTTPS: `https://github.com/<user>/<repo>.git`
-
-## 3. 后续更新
+改用 WSL 推送（常见于本机网络策略拦截）：
 
 ```bash
-git add .
-git commit -m "weekX: <本周功能>"
-git push
+wsl.exe -e bash -lc "cd /mnt/d/codex/projectB && git push origin main"
 ```
 
-## 4. 建议提交节奏
+## 3. 如果 WSL 需要调用 Windows 凭据
 
-- 里程碑提交：每周一次
-- 重大功能提交：语音模块、协议、安全、验收报告分别提交
+```bash
+wsl.exe -e bash -lc "cd /mnt/d/codex/projectB && git config credential.helper '/mnt/c/PROGRA~1/Git/mingw64/bin/git-credential-manager.exe'"
+```
 
+然后重新推送。

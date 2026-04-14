@@ -1,55 +1,27 @@
-# CubeMX 必选配置（匹配当前模板）
+﻿# CubeMX 必选配置（项目B）
 
-文件：`firmware/stm32_mvp_template/example_main_loop.c`
+## 1. 时钟与工程
 
-## 1. RCC / Clock
+- MCU 选择与你开发板一致（建议 STM32F103C8）
+- 工程工具链选择 STM32CubeIDE
+- 生成后不要删除用户代码区（USER CODE）
 
-- 系统时钟：72MHz（默认稳定配置即可）
+## 2. 外设最小配置
 
-## 2. GPIO
+- `TIM1 CH1 PWM`：PA8（电机调速）
+- `USART1 Asynchronous`：PA9/PA10（串口日志）
+- `GPIO Output`：PB12/PB13/PB14（AIN1/AIN2/STBY）
+- `GPIO Input Pull-up`：PA4/PA5/PA6（开停关按键）
+- 可选限位：PA0/PA1（上拉输入）
 
-### 输出（Push-Pull）
+## 3. 生成代码后必须确认
 
-- `PB12`：AIN1
-- `PB13`：AIN2
-- `PB14`：STBY
+- `HAL_TIM_MODULE_ENABLED` 已启用
+- `MX_TIM1_Init()` 在 `main.c` 中被调用
+- 方向/使能 GPIO 默认电平正确（上电不误动作）
 
-### 输入（Pull-Up）
+## 4. 建议保留
 
-- `PA0`：左限位（低电平触发）
-- `PA1`：右限位（低电平触发）
-- `PA4`：开键（低电平触发）
-- `PA5`：停键（低电平触发）
-- `PA6`：关键（低电平触发）
-
-## 3. TIM1 PWM
-
-- `PA8` 设为 `TIM1_CH1`
-- 频率建议：10kHz ~ 20kHz
-- 初始占空比：0
-
-## 4. USART1
-
-- `PA9` TX, `PA10` RX
-- 波特率：115200, 8N1
-
-## 5. 代码生成注意点
-
-- 生成 HAL 库工程（CubeIDE）
-- 保留 `htim1` 与 `huart1` 全局句柄
-- 主循环每 `10ms` 调一次 `App_Loop10ms()`
-
-## 6. 主循环最小集成示例
-
-```c
-App_Init();
-uint32_t last = HAL_GetTick();
-while (1) {
-    uint32_t now = HAL_GetTick();
-    if (now - last >= 10) {
-        last = now;
-        App_Loop10ms();
-    }
-}
-```
-
+- 串口日志（状态切换、故障码、目标开度）
+- 软件超时保护
+- 看门狗（如果板级环境允许）
