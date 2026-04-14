@@ -1,99 +1,71 @@
-# INMP441 语音控制网关（离线版）
+﻿# INMP441 语音控制网关（离线）
 
-这套模块用于你当前项目的最小语音增强方案：
+这个模块用于把 `INMP441 + Orange Pi + 本地网关 API` 串起来，实现离线中文语音控制窗帘。
 
-- 只新增一个 `INMP441` 麦克风
-- 语音识别运行在 `Orange Pi`（本地离线）
-- STM32 继续做执行器控制
-- 通过你现有网关 API 控制窗帘
-
-## 1. 功能
+## 1. 能力范围
 
 - 支持命令：
   - `打开窗帘` -> 100%
   - `关闭窗帘` -> 0%
   - `停止窗帘` -> stop
-  - `窗帘到50` / `窗帘到75%` / `窗帘到五十`
+  - `窗帘到50` / `窗帘到75%` / `窗帘到五十` / `窗帘百分之三十`
 - 低置信度过滤（避免误触发）
 - 命令冷却时间（避免重复下发）
 
-## 2. 目录
+## 2. 目录说明
 
-- `voice_control.py`：主程序（采音 + ASR + 命令解析 + API调用）
-- `command_parser.py`：中文命令解析
-- `config.yaml`：运行配置
-- `requirements.txt`：Python 依赖
+- `voice_control.py`：音频采集 + Vosk 识别 + 调网关 API
+- `command_parser.py`：中文语音命令解析
+- `config.example.yaml`：配置模板
 - `test_command_parser.py`：解析器自测
+- `setup_orangepi_inmp441.sh`：Orange Pi 依赖安装与模型准备脚本
 
-## 3. INMP441 接线（单麦）
+## 3. 快速开始
 
-> 具体引脚名随 Orange Pi 设备树配置可能不同，核心是 I2S 四线。
-
-- `INMP441 VDD` -> `3.3V`
-- `INMP441 GND` -> `GND`
-- `INMP441 SCK` -> `I2S_BCLK`
-- `INMP441 WS` -> `I2S_LRCLK`
-- `INMP441 SD` -> `I2S_DIN`
-- `INMP441 L/R` -> `GND`（单麦常用左声道）
-
-## 4. 软件安装
+### 3.1 安装依赖
 
 ```bash
-sudo apt update
-sudo apt install -y python3-pip python3-dev portaudio19-dev libasound2-dev
-python3 -m pip install -r requirements.txt
+cd voice_control_gateway
+bash ./setup_orangepi_inmp441.sh
 ```
 
-下载 Vosk 中文离线模型（示例）：
+### 3.2 配置
 
 ```bash
-mkdir -p models
-cd models
-wget https://alphacephei.com/vosk/models/vosk-model-small-cn-0.22.zip
-unzip vosk-model-small-cn-0.22.zip
-cd ..
+cp config.example.yaml config.yaml
+nano config.yaml
 ```
 
-验证系统是否识别到录音设备：
+重点改这几项：
 
-```bash
-arecord -l
-```
-
-若没有录音设备，先检查 I2S 驱动和设备树配置是否正确。
-
-## 5. 配置
-
-编辑 `config.yaml`：
-
-- `gateway.base_url`：你本地网关地址（例：`http://127.0.0.1:8000`）
-- `gateway.curtain_id`：设备 ID
-- `gateway.token`：若接口有鉴权，填 JWT
+- `gateway.base_url`：本地网关地址（如 `https://127.0.0.1:8443`）
+- `gateway.curtain_id`：你的设备 ID
+- `gateway.token`：JWT/Token（如接口启用鉴权）
 - `asr.model_path`：Vosk 模型路径
-- `asr.device`：音频输入设备 ID（可先留空）
+- `asr.device`：音频输入设备编号（先用 `--list-devices` 查看）
 
-## 6. 运行
-
-先查看音频设备：
-
-```bash
-python3 voice_control.py --list-devices
-```
-
-然后运行主循环：
-
-```bash
-python3 voice_control.py --config config.yaml
-```
-
-## 7. 自测
+### 3.3 自测 + 运行
 
 ```bash
 python3 test_command_parser.py
+python3 voice_control.py --list-devices
+python3 voice_control.py --config config.yaml
 ```
 
-## 8. 安全建议
+## 4. INMP441 接线（核心）
 
-- 语音控制仅建议在局域网网关内运行
-- 开启 `token` 鉴权，不要开放匿名控制 API
-- 保留实体按键急停，优先级高于语音命令
+> 以 Orange Pi Zero 3 + I2S3 方案为例，详细步骤看文档：
+> `../docs/INMP441_OPIZERO3_COMPLETE_WORKFLOW_CN.md`
+
+- `VDD` -> `3.3V`
+- `GND` -> `GND`
+- `SCK` -> `I2S_BCLK`
+- `WS` -> `I2S_LRCLK`
+- `SD` -> `I2S_DIN`
+- `L/R` -> `GND`（单麦常用左声道）
+
+## 5. 安全建议
+
+- App 只调用网关 HTTPS API，不直连 STM32。
+- 网关对下位机命令保持 `HMAC + nonce + seq` 防重放。
+- 语音网关建议部署在内网，开启 Token/JWT 鉴权。
