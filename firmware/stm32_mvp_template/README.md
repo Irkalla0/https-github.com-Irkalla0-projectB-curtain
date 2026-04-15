@@ -1,36 +1,34 @@
-# STM32 MVP 固件模板（可移植到 CubeIDE）
+﻿# STM32 执行器控制模板（Final）
 
-这是一套“从零开工”的最小执行器控制模板，目标：
+本模板用于维护 ProjectB 固件核心逻辑，已对齐最终版执行器行为与网关安全协议。
 
-- 开/关/停控制
-- 双限位保护
-- 超时保护
-- 故障锁定与复位
-- 10ms 周期调度
+## 1. 模块说明
 
-## 目录
+- `curtain_ctrl.h/.c`：状态机、轨迹控制、安全守护
+- `curtain_port.h`：硬件抽象接口（电机输出、输入采集、日志）
+- `app_entry.h/.c`：HAL适配、UART签名帧处理、持久化、调度入口
 
-- `curtain_ctrl.h/.c`：状态机与控制逻辑
-- `curtain_port.h`：硬件抽象接口（你在 Cube 工程里实现）
-- `app_entry.h/.c`：可直接集成到 Cube 工程的入口与调度
-- `example_main_loop.c`：参考示例（可不使用）
+## 2. 核心数据字段
 
-## 接入步骤（CubeIDE）
+- `current_pos` / `target_pos`
+- `motion_dir` / `pwm_now` / `pwm_target`
+- `travel_ticks_full` / `timeout_ticks`
+- `fault_code` / `recoverable`
 
-1. 在 CubeMX 配好 GPIO/TIM/UART（按 docs 接线表）
-2. 将 `curtain_ctrl.*`, `curtain_port.h`, `app_entry.*` 拷入工程（例如 `Core/Src` 和 `Core/Inc`）
-3. 在 `main.c` 中包含 `app_entry.h`
-4. 在初始化后调用 `App_Init()`
-5. 在 `while(1)` 中持续调用 `App_Run10msScheduler()`
+## 3. 状态机
 
-CubeMX 配置可直接参考：
+`IDLE -> OPENING/CLOSING -> STOPPING -> IDLE`
 
-- `docs/CUBEMX_REQUIRED_CONFIG_CN.md`
+异常路径：任意运动状态 -> `FAULT_LOCKED`（显式 `reset_fault` 才能恢复）
 
-## Day1 最小验证
+校准路径：`CALIBRATING`（开限位->关限位学习行程）
 
-1. 上电打印 `boot ok`
-2. 按“开键”后电机朝开方向运动
-3. 触发右限位后自动停机
-4. 超时未到位进入故障态
-5. 长按“停键”触发复位（可在你的按键层实现）
+## 4. 安全机制
+
+- 错限位、超时、堵转、防夹、过流故障锁定
+- 网关下发命令执行 HMAC-SHA256 验签
+- 防重放：`timestamp + nonce + seq`
+
+## 5. 集成方式
+
+将模板文件同步到 CubeIDE 工程后，由 `App_Init` / `App_Run10msScheduler` 驱动。

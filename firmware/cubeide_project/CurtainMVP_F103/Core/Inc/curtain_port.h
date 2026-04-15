@@ -1,4 +1,4 @@
-#ifndef CURTAIN_PORT_H
+﻿#ifndef CURTAIN_PORT_H
 #define CURTAIN_PORT_H
 
 #include <stdint.h>
@@ -15,12 +15,14 @@ typedef struct {
     uint8_t key_close_pressed;
     uint8_t left_limit_triggered;
     uint8_t right_limit_triggered;
+    uint8_t jam_triggered;
+    uint8_t pinch_triggered;
+    uint8_t overcurrent_triggered;
 } curtain_inputs_t;
 
-// Hardware abstraction functions (implement these in your Cube project).
+// Hardware abstraction functions (implemented in app_entry.c).
 void Port_MotorSet(motor_dir_t dir, uint8_t pwm_percent);
 void Port_Log(const char *msg);
 void Port_ReadInputs(curtain_inputs_t *in);
 
 #endif // CURTAIN_PORT_H
-

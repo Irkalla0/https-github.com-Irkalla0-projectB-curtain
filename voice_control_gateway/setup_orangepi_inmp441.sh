@@ -24,7 +24,7 @@ else
 fi
 
 echo "[4/4] done"
-echo "next steps:"
+echo "run commands:"
 echo "  1) cp config.example.yaml config.yaml"
 echo "  2) python3 voice_control.py --list-devices"
 echo "  3) python3 test_command_parser.py"

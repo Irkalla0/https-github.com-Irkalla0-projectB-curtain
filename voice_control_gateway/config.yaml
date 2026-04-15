@@ -1,7 +1,7 @@
-gateway:
-  base_url: "http://127.0.0.1:8000"
+﻿gateway:
+  base_url: "https://127.0.0.1:8443"
   curtain_id: "living-room"
-  token: ""
+  token: "projectb-local-token"
   verify_tls: false
   request_timeout_sec: 5
 

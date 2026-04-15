@@ -1,0 +1,5 @@
+﻿gateway/config.yaml
+gateway/runtime/
+gateway/certs/*.key
+gateway/certs/*.csr
+gateway/certs/*.srl

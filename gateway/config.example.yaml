@@ -1,0 +1,44 @@
+﻿server:
+  host: "0.0.0.0"
+  port: 8443
+  tls:
+    enabled: true
+    certfile: "./gateway/certs/server.crt"
+    keyfile: "./gateway/certs/server.key"
+    cafile: "./gateway/certs/ca.crt"
+    require_client_cert: false
+
+auth:
+  jwt_secret: "projectb_demo_jwt_secret"
+  jwt_algorithms: ["HS256"]
+  static_tokens:
+    - "projectb-local-token"
+
+gateway:
+  default_curtain_id: "living-room"
+  device_id: "curtain-node-001"
+  uart:
+    port: "COM6"
+    baudrate: 115200
+    timeout_sec: 0.8
+    retry_times: 2
+  hmac:
+    shared_key: "projectb_demo_hmac_key"
+    timestamp_window_sec: 120
+  storage:
+    sqlite_path: "./gateway/runtime/projectb_gateway.db"
+  queue:
+    enable_offline_queue: true
+
+mqtt:
+  enabled: false
+  host: "127.0.0.1"
+  port: 8883
+  client_id: "projectb-gateway"
+  username: ""
+  password: ""
+  tls:
+    enabled: true
+    cafile: "./gateway/certs/ca.crt"
+    certfile: "./gateway/certs/client.crt"
+    keyfile: "./gateway/certs/client.key"

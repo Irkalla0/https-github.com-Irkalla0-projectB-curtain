@@ -21,6 +21,11 @@ firmware/cubeide_project/CurtainMVP_F103/STM32CubeIDE/.settings/stm32cubeide.pro
 
 # Local models (can be downloaded on target machine)
 voice_control_gateway/models/
+gateway/runtime/
+gateway/config.yaml
+gateway/certs/*.key
+gateway/certs/*.csr
+gateway/certs/*.srl
 
 # Large artifacts
 *.zip

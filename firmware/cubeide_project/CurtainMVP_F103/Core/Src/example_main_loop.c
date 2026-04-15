@@ -1,17 +1,6 @@
-/*
+﻿/*
  * Example integration snippet for CubeIDE project.
- * HAL-ready version for STM32F103 (CubeMX/CubeIDE).
- *
- * Default pin mapping:
- * - PB12 -> AIN1
- * - PB13 -> AIN2
- * - PB14 -> STBY
- * - PA8  -> PWMA (TIM1_CH1)
- * - PA0  -> left limit (active-low)
- * - PA1  -> right limit (active-low)
- * - PA4  -> key open (active-low)
- * - PA5  -> key stop (active-low)
- * - PA6  -> key close (active-low)
+ * This file is not part of the default build list.
  */
 
 #include "curtain_ctrl.h"
@@ -54,7 +43,6 @@ static uint8_t clamp_pwm(uint8_t pwm_percent)
     return (pwm_percent > 100u) ? 100u : pwm_percent;
 }
 
-// ----------------- Port layer -----------------
 void Port_MotorSet(motor_dir_t dir, uint8_t pwm_percent)
 {
     uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1);
@@ -91,7 +79,7 @@ void Port_MotorSet(motor_dir_t dir, uint8_t pwm_percent)
 void Port_Log(const char *msg)
 {
     char line[128];
-    int n = snprintf(line, sizeof(line), "%s\r\n", msg);
+    int n = snprintf(line, sizeof(line), "# %s\r\n", msg);
     if (n > 0) {
         HAL_UART_Transmit(&huart1, (uint8_t *)line, (uint16_t)strlen(line), 100);
     }
@@ -107,7 +95,6 @@ void Port_ReadInputs(curtain_inputs_t *in)
     uint8_t cur_stop = is_active_low(KEY_STOP_GPIO_Port, KEY_STOP_Pin);
     uint8_t cur_close = is_active_low(KEY_CLOSE_GPIO_Port, KEY_CLOSE_Pin);
 
-    // Keys: edge-triggered (press event once).
     in->key_open_pressed = (uint8_t)(cur_open && !prev_open);
     in->key_stop_pressed = (uint8_t)(cur_stop && !prev_stop);
     in->key_close_pressed = (uint8_t)(cur_close && !prev_close);
@@ -116,42 +103,23 @@ void Port_ReadInputs(curtain_inputs_t *in)
     prev_stop = cur_stop;
     prev_close = cur_close;
 
-    // Limits: level-triggered for immediate stop protection.
     in->left_limit_triggered = is_active_low(LIMIT_LEFT_GPIO_Port, LIMIT_LEFT_Pin);
     in->right_limit_triggered = is_active_low(LIMIT_RIGHT_GPIO_Port, LIMIT_RIGHT_Pin);
+    in->jam_triggered = 0u;
+    in->pinch_triggered = 0u;
+    in->overcurrent_triggered = 0u;
 }
 
-// ----------------- Example app loop -----------------
 void App_Init(void)
 {
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-    Curtain_Init(&g_ctx);
+    Curtain_Init(&g_ctx, 50u, CURTAIN_TRAVEL_TICKS_FULL_DEFAULT);
     Port_Log("boot ok");
 }
 
 void App_Loop10ms(void)
 {
-    Curtain_Tick10ms(&g_ctx);
+    curtain_inputs_t in;
+    Port_ReadInputs(&in);
+    Curtain_Tick10ms(&g_ctx, &in);
 }
-
-/*
-int main(void)
-{
-    HAL_Init();
-    SystemClock_Config();
-    MX_GPIO_Init();
-    MX_TIM1_Init();
-    MX_USART1_UART_Init();
-
-    App_Init();
-
-    uint32_t last = HAL_GetTick();
-    while (1) {
-        uint32_t now = HAL_GetTick();
-        if (now - last >= 10) {
-            last = now;
-            App_Loop10ms();
-        }
-    }
-}
-*/
